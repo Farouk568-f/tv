@@ -57,14 +57,27 @@ export const fetchFromTMDB = async (endpoint: string, params: Record<string, str
 };
 
 export const fetchStreamUrl = async (
-    title: string,
+    title: string, // title is now a fallback
     media_type: 'movie' | 'tv',
+    tmdbId: number,
     year?: string | null,
     season?: number | null,
     episode?: number | null
 ): Promise<QualityLink[]> => {
+    let englishTitle = title;
+    try {
+        // Force fetching english details to get the english title for the scraper
+        const englishData = await fetchFromTMDB(`/${media_type}/${tmdbId}`, { language: 'en-US' });
+        // The title/name field from an en-US query should be in English.
+        if (englishData.title || englishData.name) {
+            englishTitle = englishData.title || englishData.name;
+        }
+    } catch (e) {
+        console.warn("Could not fetch English title from TMDB, proceeding with provided title.", e);
+    }
+
     const params = new URLSearchParams();
-    params.append('title', title);
+    params.append('title', englishTitle);
     params.append('type', media_type === 'tv' ? 'series' : 'movie');
 
     if (media_type === 'tv' && season && episode) {

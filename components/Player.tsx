@@ -150,10 +150,11 @@ const VideoPlayer: React.FC<PlayerProps> = ({ item, itemType, initialSeason, ini
                 return;
             }
             try {
-                const title = item.original_title || item.original_name || item.name || item.title;
+                // The title is now just a fallback, the primary method will use the item ID to fetch the english title.
+                const title = item.name || item.title;
                 const year = itemType === 'movie' ? (item.release_date?.substring(0, 4) || null) : null;
                 
-                const links = await fetchStreamUrl(title, itemType, year, initialSeason, initialEpisode?.episode_number);
+                const links = await fetchStreamUrl(title, itemType, item.id, year, initialSeason, initialEpisode?.episode_number);
                 
                 // Sort by quality, lowest first for faster start
                 const sortedLinks = links.sort((a, b) => parseInt(a.quality) - parseInt(b.quality));
